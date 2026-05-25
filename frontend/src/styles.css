@@ -275,6 +275,17 @@ tbody tr:hover {
   gap: 8px;
 }
 
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 18px;
+  color: #5d523f;
+  font-weight: 800;
+}
+
 .empty-state {
   border: 1px dashed rgba(70, 58, 38, 0.24);
   border-radius: 18px;

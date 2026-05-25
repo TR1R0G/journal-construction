@@ -5,6 +5,7 @@
 ## Реализованный функционал
 
 - Список записей журнала работ.
+- Пагинация списка записей.
 - Фильтрация записей по дате выполнения.
 - Сортировка записей по дате в прямом и обратном порядке.
 - Добавление записи через форму.
@@ -14,6 +15,7 @@
 - Хранение данных в PostgreSQL.
 - Взаимодействие frontend и backend через REST API.
 - Frontend- и backend-валидация обязательных полей.
+- Базовые backend-тесты API.
 - Автоматическое применение Prisma-миграций и seed справочника при Docker-запуске.
 
 ## Стек
@@ -99,6 +101,7 @@ npm --prefix frontend run dev
 
 ```bash
 npm run build
+npm run test:backend
 ```
 
 ## API
@@ -128,6 +131,19 @@ Query params:
 - `dateFrom`: необязательная дата начала периода.
 - `dateTo`: необязательная дата конца периода.
 - `sortOrder`: `asc` или `desc`, по умолчанию `desc`.
+- `page`: номер страницы, по умолчанию `1`.
+- `pageSize`: размер страницы, по умолчанию `10`, максимум `100`.
+
+Формат ответа:
+
+```json
+{
+  "items": [],
+  "page": 1,
+  "pageSize": 10,
+  "total": 0
+}
+```
 
 `POST /api/work-log-entries`
 
@@ -174,7 +190,9 @@ Query params:
 │       ├── middleware/        # обработка ошибок
 │       ├── routes/            # REST routes
 │       ├── validation/        # Zod schemas
-│       └── server.ts          # Express entrypoint
+│       ├── app.ts             # Express app
+│       ├── app.test.ts        # базовые API-тесты
+│       └── server.ts          # HTTP entrypoint
 ├── frontend/
 │   └── src/
 │       ├── api/               # fetch API client
@@ -191,6 +209,7 @@ Query params:
 
 ```bash
 npm run build
+npm run test:backend
 npm --prefix backend run prisma:migrate
 npm --prefix backend run prisma:seed
 npm --prefix backend run prisma:studio
@@ -203,7 +222,6 @@ docker-compose down
 
 - Авторизация пользователей.
 - Роли и разграничение доступа.
-- Пагинация списка записей.
 - Экспорт журнала в Excel/PDF.
 - Расширенный справочник единиц измерения.
-- Unit- и integration-тесты для backend и frontend.
+- Расширение покрытия тестами frontend и edge cases backend.

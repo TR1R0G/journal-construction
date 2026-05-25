@@ -61,6 +61,26 @@ export function FilterPanel({ filters, onChange, onApply, onReset, disabled }: F
         </select>
       </label>
 
+      <label>
+        На странице
+        <select
+          value={filters.pageSize}
+          onChange={(event) =>
+            onChange({
+              ...filters,
+              page: 1,
+              pageSize: Number(event.target.value)
+            })
+          }
+          disabled={disabled}
+        >
+          <option value={5}>5 записей</option>
+          <option value={10}>10 записей</option>
+          <option value={20}>20 записей</option>
+          <option value={50}>50 записей</option>
+        </select>
+      </label>
+
       <div className="actions">
         <button type="submit" disabled={disabled}>
           Применить

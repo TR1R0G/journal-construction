@@ -28,13 +28,23 @@ workLogEntriesRouter.get(
       };
     }
 
-    const entries = await prisma.workLogEntry.findMany({
-      where,
-      include: includeWorkType,
-      orderBy: { date: query.sortOrder }
-    });
+    const [total, items] = await prisma.$transaction([
+      prisma.workLogEntry.count({ where }),
+      prisma.workLogEntry.findMany({
+        where,
+        include: includeWorkType,
+        orderBy: { date: query.sortOrder },
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize
+      })
+    ]);
 
-    res.json(entries);
+    res.json({
+      items,
+      page: query.page,
+      pageSize: query.pageSize,
+      total
+    });
   })
 );
 
@@ -68,7 +78,7 @@ workLogEntriesRouter.put(
       res.json(entry);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-        throw notFound("Work log entry not found");
+        throw notFound("Запись журнала не найдена");
       }
 
       throw error;
@@ -89,7 +99,7 @@ workLogEntriesRouter.delete(
       res.status(204).send();
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-        throw notFound("Work log entry not found");
+        throw notFound("Запись журнала не найдена");
       }
 
       throw error;
@@ -98,5 +108,5 @@ workLogEntriesRouter.delete(
 );
 
 workLogEntriesRouter.use((_req, _res, next) => {
-  next(new AppError(404, "Work log endpoint not found"));
+  next(new AppError(404, "Endpoint журнала работ не найден"));
 });

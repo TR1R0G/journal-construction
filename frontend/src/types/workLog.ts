@@ -33,4 +33,13 @@ export type WorkLogFilters = {
   dateFrom: string;
   dateTo: string;
   sortOrder: SortOrder;
+  page: number;
+  pageSize: number;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
 };

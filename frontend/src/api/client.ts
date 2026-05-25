@@ -1,10 +1,37 @@
-import type { WorkLogEntry, WorkLogEntryPayload, WorkLogFilters, WorkType } from "../types/workLog";
+import type {
+  PaginatedResponse,
+  WorkLogEntry,
+  WorkLogEntryPayload,
+  WorkLogFilters,
+  WorkType
+} from "../types/workLog";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 type ApiErrorResponse = {
   message?: string;
-  errors?: unknown;
+  errors?: {
+    formErrors?: string[];
+    fieldErrors?: Record<string, string[]>;
+  };
+};
+
+const formatApiError = (payload: ApiErrorResponse | null, status: number) => {
+  if (!payload) {
+    return `Ошибка API: ${status}`;
+  }
+
+  const fieldErrors = payload.errors?.fieldErrors
+    ? Object.values(payload.errors.fieldErrors).flat().filter(Boolean)
+    : [];
+  const formErrors = payload.errors?.formErrors?.filter(Boolean) ?? [];
+  const details = [...formErrors, ...fieldErrors];
+
+  if (details.length > 0) {
+    return `${payload.message ?? "Ошибка валидации"}: ${details.join("; ")}`;
+  }
+
+  return payload.message ?? `Ошибка API: ${status}`;
 };
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -25,7 +52,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       payload = null;
     }
 
-    throw new Error(payload?.message ?? `Ошибка API: ${response.status}`);
+    throw new Error(formatApiError(payload, response.status));
   }
 
   if (response.status === 204) {
@@ -50,8 +77,10 @@ export const apiClient = {
     }
 
     params.set("sortOrder", filters.sortOrder);
+    params.set("page", String(filters.page));
+    params.set("pageSize", String(filters.pageSize));
 
-    return request<WorkLogEntry[]>(`/api/work-log-entries?${params.toString()}`);
+    return request<PaginatedResponse<WorkLogEntry>>(`/api/work-log-entries?${params.toString()}`);
   },
 
   createWorkLogEntry: (payload: WorkLogEntryPayload) =>

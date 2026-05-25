@@ -8,7 +8,9 @@ import type { WorkLogEntry, WorkLogEntryPayload, WorkLogFilters, WorkType } from
 const defaultFilters: WorkLogFilters = {
   dateFrom: "",
   dateTo: "",
-  sortOrder: "desc"
+  sortOrder: "desc",
+  page: 1,
+  pageSize: 10
 };
 
 const getErrorMessage = (error: unknown) =>
@@ -17,6 +19,7 @@ const getErrorMessage = (error: unknown) =>
 export function App() {
   const [workTypes, setWorkTypes] = useState<WorkType[]>([]);
   const [entries, setEntries] = useState<WorkLogEntry[]>([]);
+  const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState<WorkLogFilters>(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState<WorkLogFilters>(defaultFilters);
   const [editingEntry, setEditingEntry] = useState<WorkLogEntry | null>(null);
@@ -30,7 +33,8 @@ export function App() {
 
     try {
       const data = await apiClient.getWorkLogEntries(nextFilters);
-      setEntries(data);
+      setEntries(data.items);
+      setTotal(data.total);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
     } finally {
@@ -56,7 +60,8 @@ export function App() {
         }
 
         setWorkTypes(workTypesData);
-        setEntries(entriesData);
+        setEntries(entriesData.items);
+        setTotal(entriesData.total);
       } catch (requestError) {
         if (mounted) {
           setError(getErrorMessage(requestError));
@@ -76,14 +81,23 @@ export function App() {
   }, []);
 
   const handleApplyFilters = () => {
-    setAppliedFilters(filters);
-    void loadEntries(filters);
+    const nextFilters = { ...filters, page: 1 };
+    setFilters(nextFilters);
+    setAppliedFilters(nextFilters);
+    void loadEntries(nextFilters);
   };
 
   const handleResetFilters = () => {
     setFilters(defaultFilters);
     setAppliedFilters(defaultFilters);
     void loadEntries(defaultFilters);
+  };
+
+  const handlePageChange = (page: number) => {
+    const nextFilters = { ...appliedFilters, page };
+    setFilters(nextFilters);
+    setAppliedFilters(nextFilters);
+    void loadEntries(nextFilters);
   };
 
   const handleSubmitEntry = async (payload: WorkLogEntryPayload) => {
@@ -107,7 +121,9 @@ export function App() {
   };
 
   const handleDeleteEntry = async (entry: WorkLogEntry) => {
-    const confirmed = window.confirm(`Удалить запись от ${entry.date.slice(0, 10)}?`);
+    const confirmed = window.confirm(
+      `Удалить запись от ${new Intl.DateTimeFormat("ru-RU").format(new Date(entry.date))}?`
+    );
 
     if (!confirmed) {
       return;
@@ -159,8 +175,12 @@ export function App() {
 
         <WorkLogTable
           entries={entries}
+          page={appliedFilters.page}
+          pageSize={appliedFilters.pageSize}
+          total={total}
           onEdit={setEditingEntry}
           onDelete={handleDeleteEntry}
+          onPageChange={handlePageChange}
           loading={loading}
         />
       </section>

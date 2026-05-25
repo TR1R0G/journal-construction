@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const requiredString = (fieldName: string) =>
-  z.string().trim().min(1, `${fieldName} is required`);
+  z.string().trim().min(1, `Поле ${fieldName} обязательно`);
 
 const dateString = (fieldName: string) =>
   requiredString(fieldName).transform((value, ctx) => {
@@ -10,7 +10,7 @@ const dateString = (fieldName: string) =>
     if (Number.isNaN(date.getTime())) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `${fieldName} must be a valid date`
+        message: `Поле ${fieldName} должно быть валидной датой`
       });
       return z.NEVER;
     }
@@ -33,7 +33,7 @@ const optionalDateString = (fieldName: string) =>
       if (Number.isNaN(date.getTime())) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${fieldName} must be a valid date`
+          message: `Поле ${fieldName} должно быть валидной датой`
         });
         return z.NEVER;
       }
@@ -51,20 +51,32 @@ export const workLogEntrySchema = z.object({
   date: dateString("date"),
   workTypeId: z.coerce
     .number()
-    .int("workTypeId must be an integer")
-    .positive("workTypeId is required"),
-  volumeValue: z.coerce.number().positive("volumeValue must be greater than 0"),
+    .int("workTypeId должен быть целым числом")
+    .positive("Поле workTypeId обязательно"),
+  volumeValue: z.coerce.number().positive("volumeValue должен быть больше 0"),
   volumeUnit: requiredString("volumeUnit"),
   performerName: requiredString("performerName"),
   comment: optionalComment
 });
 
+const paginationNumber = (defaultValue: number, maxValue?: number) =>
+  z.preprocess(
+    (value) => (value === undefined || value === "" ? defaultValue : value),
+    z.coerce
+      .number()
+      .int("Значение должно быть целым числом")
+      .min(1, "Значение должно быть больше 0")
+      .pipe(maxValue ? z.number().max(maxValue, `Значение должно быть не больше ${maxValue}`) : z.number())
+  );
+
 export const workLogEntryQuerySchema = z.object({
   dateFrom: optionalDateString("dateFrom"),
   dateTo: optionalDateString("dateTo"),
-  sortOrder: z.enum(["asc", "desc"]).optional().default("desc")
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+  page: paginationNumber(1),
+  pageSize: paginationNumber(10, 100)
 });
 
 export const workLogEntryParamsSchema = z.object({
-  id: z.coerce.number().int("id must be an integer").positive("id must be positive")
+  id: z.coerce.number().int("id должен быть целым числом").positive("id должен быть больше 0")
 });

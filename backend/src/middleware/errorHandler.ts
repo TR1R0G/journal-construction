@@ -17,7 +17,7 @@ export const notFound = (message = "Resource not found") => new AppError(404, me
 export function errorHandler(error: unknown, _req: Request, res: Response, _next: NextFunction) {
   if (error instanceof ZodError) {
     res.status(400).json({
-      message: "Validation error",
+      message: "Проверьте корректность заполнения полей",
       errors: error.flatten()
     });
     return;
@@ -32,15 +32,15 @@ export function errorHandler(error: unknown, _req: Request, res: Response, _next
   }
 
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-    res.status(404).json({ message: "Resource not found" });
+    res.status(404).json({ message: "Запись не найдена" });
     return;
   }
 
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
-    res.status(400).json({ message: "Invalid relation id" });
+    res.status(400).json({ message: "Выбранный вид работ не найден" });
     return;
   }
 
   console.error(error);
-  res.status(500).json({ message: "Internal server error" });
+  res.status(500).json({ message: "Внутренняя ошибка сервера" });
 }
