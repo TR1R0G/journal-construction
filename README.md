@@ -29,7 +29,7 @@ cp .env.example .env
 2. Запустите проект:
 
 ```bash
-docker compose up --build
+docker-compose up --build
 ```
 
 3. Откройте:
@@ -37,8 +37,15 @@ docker compose up --build
 - Frontend: http://localhost:5173
 - Backend healthcheck: http://localhost:4000/health
 
-При старте backend выполняет `prisma migrate deploy` и `prisma db seed`, чтобы применить миграции PostgreSQL и заполнить справочник видов работ.
+При старте backend выполняет `prisma generate`, `prisma migrate deploy` и `prisma db seed`, чтобы сгенерировать Prisma Client, применить миграции PostgreSQL и заполнить справочник видов работ.
 PostgreSQL публикуется на host-порту `5433` по умолчанию, чтобы не конфликтовать с локальной базой на `5432`.
+
+Если локальный volume PostgreSQL был создан старой версией проекта до появления миграций, сбросьте dev-базу:
+
+```bash
+docker-compose down -v
+docker-compose up --build
+```
 
 ## Локальный запуск без Docker
 
