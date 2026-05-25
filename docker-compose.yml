@@ -28,6 +28,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://journal_user:journal_password@postgres:5432/journal_construction?schema=public}
       PORT: ${BACKEND_PORT:-4000}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
       NODE_ENV: development
     ports:
       - "4000:4000"

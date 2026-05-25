@@ -1,16 +1,21 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import type { NextFunction, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { prisma } from "./lib/prisma.js";
+import { workLogEntriesRouter } from "./routes/workLogEntries.js";
+import { workTypesRouter } from "./routes/workTypes.js";
 
 dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
 const port = Number(process.env.PORT ?? 4000);
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN ?? true
+  })
+);
 app.use(express.json());
 
 app.get("/health", async (_req, res, next) => {
@@ -29,10 +34,10 @@ app.get("/api", (_req, res) => {
   });
 });
 
-app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(error);
-  res.status(500).json({ message: "Internal server error" });
-});
+app.use("/api/work-types", workTypesRouter);
+app.use("/api/work-log-entries", workLogEntriesRouter);
+
+app.use(errorHandler);
 
 const server = app.listen(port, "0.0.0.0", () => {
   console.log(`API server listening on port ${port}`);
