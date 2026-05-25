@@ -51,6 +51,8 @@ docker-compose up --build
 
 При старте backend выполняет `prisma generate`, `prisma migrate deploy` и `prisma db seed`: генерирует Prisma Client, применяет миграции и заполняет справочник видов работ.
 
+Для production-хостинга без доступа к shell/pre-deploy hooks backend `npm start` также выполняет `prisma migrate deploy` и `prisma db seed` перед запуском Express. Это позволяет применить миграции на Render Free plan обычным redeploy.
+
 Если локальный volume PostgreSQL был создан старой версией проекта до появления миграций, сбросьте dev-базу:
 
 ```bash
