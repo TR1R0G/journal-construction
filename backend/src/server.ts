@@ -40,7 +40,7 @@ app.use("/api/work-log-entries", workLogEntriesRouter);
 app.use(errorHandler);
 
 const server = app.listen(port, "0.0.0.0", () => {
-  console.log(`API server listening on port ${port}`);
+  console.info(`API server listening on port ${port}`);
 });
 
 const shutdown = async () => {
