@@ -53,6 +53,8 @@ docker-compose up --build
 
 Для production-хостинга без доступа к shell/pre-deploy hooks backend `npm start` также выполняет `prisma migrate deploy` и `prisma db seed` перед запуском Express. Это позволяет применить миграции на Render Free plan обычным redeploy.
 
+Фактически production `npm start` выполняет `prisma generate`, `prisma migrate deploy`, `prisma db seed` и только затем запускает Express, поэтому база и Prisma Client инициализируются автоматически при старте backend.
+
 Если локальный volume PostgreSQL был создан старой версией проекта до появления миграций, сбросьте dev-базу:
 
 ```bash
@@ -109,6 +111,11 @@ npm run test:backend
 ## API
 
 Базовый URL при Docker-запуске: `http://localhost:4000`.
+
+## Публичные URL
+
+- API: https://journal-construction.onrender.com/
+- Frontend: https://journal-construction-frontend.vercel.app/
 
 ### Healthcheck
 

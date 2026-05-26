@@ -41,6 +41,13 @@ export function errorHandler(error: unknown, _req: Request, res: Response, _next
     return;
   }
 
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+    res.status(500).json({
+      message: "Схема базы данных не инициализирована. Примените миграции и seed."
+    });
+    return;
+  }
+
   console.error(error);
   res.status(500).json({ message: "Внутренняя ошибка сервера" });
 }
