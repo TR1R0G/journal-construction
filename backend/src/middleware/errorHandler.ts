@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from "express";
-import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
 export class AppError extends Error {
@@ -13,6 +12,12 @@ export class AppError extends Error {
 }
 
 export const notFound = (message = "Resource not found") => new AppError(404, message);
+
+const isPrismaKnownRequestError = (error: unknown): error is { code: string } =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  typeof (error as { code?: unknown }).code === "string";
 
 export function errorHandler(error: unknown, _req: Request, res: Response, _next: NextFunction) {
   if (error instanceof ZodError) {
@@ -31,17 +36,17 @@ export function errorHandler(error: unknown, _req: Request, res: Response, _next
     return;
   }
 
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+  if (isPrismaKnownRequestError(error) && error.code === "P2025") {
     res.status(404).json({ message: "Запись не найдена" });
     return;
   }
 
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+  if (isPrismaKnownRequestError(error) && error.code === "P2003") {
     res.status(400).json({ message: "Выбранный вид работ не найден" });
     return;
   }
 
-  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+  if (isPrismaKnownRequestError(error) && error.code === "P2021") {
     res.status(500).json({
       message: "Схема базы данных не инициализирована. Примените миграции и seed."
     });

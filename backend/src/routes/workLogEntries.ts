@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { AppError, notFound } from "../middleware/errorHandler.js";
 import { asyncHandler } from "./asyncHandler.js";
@@ -13,20 +12,27 @@ export const workLogEntriesRouter = Router();
 
 const includeWorkType = {
   workType: true
-} satisfies Prisma.WorkLogEntryInclude;
+};
+
+const isPrismaKnownRequestError = (error: unknown): error is { code: string } =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  typeof (error as { code?: unknown }).code === "string";
 
 workLogEntriesRouter.get(
   "/",
   asyncHandler(async (req, res) => {
     const query = workLogEntryQuerySchema.parse(req.query);
-    const where: Prisma.WorkLogEntryWhereInput = {};
-
-    if (query.dateFrom || query.dateTo) {
-      where.date = {
+    const where =
+      query.dateFrom || query.dateTo
+        ? {
+            date: {
         ...(query.dateFrom ? { gte: query.dateFrom } : {}),
         ...(query.dateTo ? { lte: query.dateTo } : {})
-      };
-    }
+            }
+          }
+        : undefined;
 
     const [total, items] = await prisma.$transaction([
       prisma.workLogEntry.count({ where }),
@@ -77,7 +83,7 @@ workLogEntriesRouter.put(
 
       res.json(entry);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      if (isPrismaKnownRequestError(error) && error.code === "P2025") {
         throw notFound("Запись журнала не найдена");
       }
 
@@ -98,7 +104,7 @@ workLogEntriesRouter.delete(
 
       res.status(204).send();
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      if (isPrismaKnownRequestError(error) && error.code === "P2025") {
         throw notFound("Запись журнала не найдена");
       }
 
