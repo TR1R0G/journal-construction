@@ -75,9 +75,20 @@ docker-compose up --build
 - `FRONTEND_ORIGIN`: origin frontend для CORS.
 - `VITE_API_URL`: URL backend API для frontend.
 
+Назначение файлов:
+
+- `.env.example`: переменные для `docker-compose` из корня проекта.
+- `backend/.env.example`: переменные для локального запуска backend без Docker.
+- `frontend/.env.example`: переменные для локального запуска frontend без Docker.
+
 ## Локальная разработка без Docker
 
-Требуется Node.js 22 LTS и доступный PostgreSQL. Для локального backend `.env` используйте `backend/.env.example` и укажите корректный `DATABASE_URL`.
+Требуется Node.js 22 LTS и доступный PostgreSQL.
+
+Для локального backend используйте `backend/.env.example`:
+
+- если PostgreSQL установлен локально на машине, оставьте `localhost:5432`;
+- если backend должен подключаться к PostgreSQL из `docker-compose`, замените порт в `DATABASE_URL` на `5433`.
 
 Установка зависимостей:
 
@@ -89,6 +100,7 @@ npm install
 
 ```bash
 cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 npm --prefix backend run prisma:generate
 npm --prefix backend run prisma:migrate
 npm --prefix backend run prisma:seed
@@ -100,6 +112,44 @@ npm --prefix backend run prisma:seed
 npm --prefix backend run dev
 npm --prefix frontend run dev
 ```
+
+После запуска откройте:
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:4000/api
+
+## Локальное тестирование с Supabase
+
+Если для локальной проверки используется Supabase вместо локального PostgreSQL, не вставляйте реальный connection string в `.env.example` и не коммитьте его в репозиторий.
+
+Создайте локальные файлы окружения:
+
+`backend/.env`
+
+```env
+DATABASE_URL=YOUR_SUPABASE_CONNECTION_STRING
+PORT=4000
+FRONTEND_ORIGIN=http://localhost:5173
+```
+
+`frontend/.env`
+
+```env
+VITE_API_URL=http://localhost:4000
+```
+
+Далее выполните:
+
+```bash
+npm install
+npm --prefix backend run prisma:generate
+npm --prefix backend run prisma:migrate
+npm --prefix backend run prisma:seed
+npm --prefix backend run dev
+npm --prefix frontend run dev
+```
+
+Рекомендуется использовать Supabase Session Pooler connection string и добавлять к нему параметры `?schema=public&sslmode=require`, если они не включены изначально.
 
 Полная проверка сборки:
 
