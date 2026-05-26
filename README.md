@@ -114,8 +114,10 @@ npm run test:backend
 
 ## Публичные URL
 
-- API: https://journal-construction.onrender.com/
+Ссылки для проверки приложения:
+
 - Frontend: https://journal-construction-frontend.vercel.app/
+- API: https://journal-api-v1.onrender.com/
 
 ### Healthcheck
 
